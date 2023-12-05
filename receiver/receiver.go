@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
+	"time"
 
 	connection "farukh.go/micro/connection"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -15,7 +18,12 @@ func main() {
 	qName := connection.DeclareQWithBinding(ch)
 	messageChannel := getReceiveChannel(ch, qName)
 	for delivery := range messageChannel {
-		fmt.Printf("%s", delivery.Body)
+		valuePart := strings.Split(delivery.RoutingKey, "/")[1]
+		timeToSleep, _ := strconv.ParseInt(valuePart, 10, 64)
+		fmt.Printf("i need to slepp for %d\n", timeToSleep)
+		time.Sleep(time.Duration(timeToSleep) * time.Second)
+		delivery.Ack(false)
+		fmt.Printf("%d seconds elapsed\n", timeToSleep)
 	}
 }
 
@@ -23,8 +31,8 @@ func getReceiveChannel(ch *amqp.Channel, qName string) (messageChannel <-chan am
 	messageChannel, err := ch.Consume(
 		qName, // q name
 		"",    // consumer
-		true,  // autoAck
-		false, // exclusive
+		false, // autoAck
+		true,  // exclusive
 		false, // noLocal
 		false, // noWait
 		nil,   // args

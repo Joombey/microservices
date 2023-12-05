@@ -15,12 +15,12 @@ func DeclareConnectionAndCreateChannel() (conn *amqp.Connection, ch *amqp.Channe
 	return
 }
 
-func DecalreQ(ch *amqp.Channel) (q amqp.Queue) {
+func DeclareQ(ch *amqp.Channel) (q amqp.Queue) {
 	q, err := ch.QueueDeclare(
 		consts.Q_NAME, // q name
-		false,         // durable
+		true,          // durable
 		false,         // autoDetele
-		false,         // exclusive
+		true,          // exclusive
 		false,         // noWait
 		nil,           // args
 	)
@@ -32,7 +32,7 @@ func DelcareExcange(ch *amqp.Channel) {
 	err := ch.ExchangeDeclare(
 		consts.EXCHANGE_NAME, //name
 		amqp.ExchangeFanout,  //kind
-		false,                //durable
+		true,                 //durable
 		false,                //autoDelete
 		false,                //internal
 		false,                //noWait
@@ -42,13 +42,14 @@ func DelcareExcange(ch *amqp.Channel) {
 }
 
 func DeclareQWithBinding(ch *amqp.Channel) (q string) {
-	q = DecalreQ(ch).Name
+	DelcareExcange(ch)
+	q = DeclareQ(ch).Name
 	err := ch.QueueBind(
-		consts.Q_BIND_NAME,
-		"",
-		consts.EXCHANGE_NAME,
-		false,
-		nil,
+		q,                    // q_name
+		consts.ROUTING_KEY,   // key - idk
+		consts.EXCHANGE_NAME, // exchange_name
+		false,                // noWait
+		nil,                  // args
 	)
 	defer failOnError(err, "failed to bind q")
 	return
