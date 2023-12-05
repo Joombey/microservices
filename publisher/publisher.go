@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"math/rand"
 	"time"
 
 	connection "farukh.go/micro/connection"
@@ -14,9 +16,10 @@ func main() {
 	conn, ch := connection.DeclareConnectionAndCreateChannel()
 	defer ch.Close()
 	defer conn.Close()
-	qName := connection.DeclareQWithBinding(ch)
 	body := "Hello World!"
-	publish(ch, qName, []byte(body))
+	for i := 0; i < 5; i++ {
+		publish(ch, consts.Q_NAME, []byte(body), rand.Int63n(10))
+	}
 }
 
 func failOnError(err error, msg string) {
@@ -25,15 +28,15 @@ func failOnError(err error, msg string) {
 	}
 }
 
-func publish(ch *amqp.Channel, qName string, body []byte) {
+func publish(ch *amqp.Channel, qName string, body []byte, timeToSleep int64) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	err := ch.PublishWithContext(ctx,
-		consts.EXCHANGE_NAME, // exchange
-		"",                   // routing key
-		false,                // mandatory
-		false,                // immediate
+		consts.EXCHANGE_NAME,                     // exchange
+		fmt.Sprintf("exclusive/%d", timeToSleep), // routing key
+		false,                                    // mandatory
+		false,                                    // immediate
 		amqp.Publishing{
 			ContentType: "text/plain",
 			Body:        body,
