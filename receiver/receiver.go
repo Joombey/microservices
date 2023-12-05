@@ -18,11 +18,16 @@ func main() {
 	qName := connection.DeclareQWithBinding(ch)
 	messageChannel := getReceiveChannel(ch, qName)
 	for delivery := range messageChannel {
+
 		valuePart := strings.Split(delivery.RoutingKey, "/")[1]
 		timeToSleep, _ := strconv.ParseInt(valuePart, 10, 64)
+
 		fmt.Printf("i need to slepp for %d\n", timeToSleep)
+
 		time.Sleep(time.Duration(timeToSleep) * time.Second)
+
 		delivery.Ack(false)
+
 		fmt.Printf("%d seconds elapsed\n", timeToSleep)
 	}
 }
@@ -32,7 +37,7 @@ func getReceiveChannel(ch *amqp.Channel, qName string) (messageChannel <-chan am
 		qName, // q name
 		"",    // consumer
 		false, // autoAck
-		true,  // exclusive
+		false, // exclusive
 		false, // noLocal
 		false, // noWait
 		nil,   // args

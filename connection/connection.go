@@ -20,7 +20,7 @@ func DeclareQ(ch *amqp.Channel) (q amqp.Queue) {
 		consts.Q_NAME, // q name
 		true,          // durable
 		false,         // autoDetele
-		true,          // exclusive
+		false,         // exclusive
 		false,         // noWait
 		nil,           // args
 	)
